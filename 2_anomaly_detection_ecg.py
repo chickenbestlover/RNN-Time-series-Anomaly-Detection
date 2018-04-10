@@ -60,7 +60,7 @@ try:
    score_predictor = SVR(C=1.0,epsilon=0.2)
    score_predictor.fit(torch.cat(hiddens,dim=0).numpy(),train_scores)
 
-   scores, sorted_predictions,sorted_errors, _, predicted_scores = anomalyScore(args, model, test_dataset, mean, cov, endPoint,score_predictor=score_predictor)
+   scores, sorted_predictions,sorted_errors, _, predicted_scores = anomalyScore(args, model, test_dataset, mean, cov, endPoint,score_predictor=score_predictor,channel_idx=1)
 
    sorted_predictions = torch.cat(sorted_predictions, dim=0)
    sorted_errors = torch.cat(sorted_errors,dim=0)
