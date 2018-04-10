@@ -77,3 +77,9 @@ class RNNPredictor(nn.Module):
         if is_best:
             shutil.copyfile(filename, './save/' + args.data + '/model_best.pth.tar')
         print('=> checkpoint saved.')
+
+    def extract_hidden(self, hidden):
+        if self.rnn_type == 'LSTM':
+            return hidden[0][-1].data.cpu()  # hidden state last layer (hidden[1] is cell state)
+        else:
+            return hidden[-1].data.cpu()  # last layer

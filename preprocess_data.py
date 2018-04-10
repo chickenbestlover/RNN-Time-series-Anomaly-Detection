@@ -224,3 +224,39 @@ class GestureDataLoad(object):
 
 
         return dataset
+
+
+
+
+def batchify(args,data, bsz):
+
+    if args.data == 'nyc_taxi':
+        # Work out how cleanly we can divide the dataset into bsz parts.
+        nbatch = data['seqData'].size(0) // bsz
+        # Trim off any extra elements that wouldn't cleanly fit (remainders).
+        dataset = {}
+        for key in ['seqData','timeOfDay','dayOfWeek']:
+            dataset[key] = data[key].narrow(0, 0, nbatch * bsz)
+            # Evenly divide the data across the bsz batches.
+            dataset[key] = dataset[key].view(bsz, -1).t().contiguous().unsqueeze(2) # data: [ seq_length * batch_size * 1 ]
+
+        batched_data = torch.cat([dataset['seqData'],dataset['timeOfDay'],dataset['dayOfWeek']],dim=2)
+        # batched_data: [ seq_length * batch_size * feature_size ] , feature_size = 3
+    elif args.data == 'ecg' or args.data =='gesture':
+        # Work out how cleanly we can divide the dataset into bsz parts.
+        nbatch = data['seqData1'].size(0) // bsz
+        # Trim off any extra elements that wouldn't cleanly fit (remainders).
+        dataset = {}
+        for key in ['seqData1', 'seqData2']:
+            dataset[key] = data[key].narrow(0, 0, nbatch * bsz)
+            # Evenly divide the data across the bsz batches.
+            dataset[key] = dataset[key].view(bsz, -1).t().contiguous().unsqueeze(
+                2)  # data: [ seq_length * batch_size * 1 ]
+
+        batched_data = torch.cat([dataset['seqData1'], dataset['seqData2']], dim=2)
+        # batched_data: [ seq_length * batch_size * feature_size ] , feature_size = 2
+
+    if args.cuda:
+        batched_data = batched_data.cuda()
+
+    return batched_data

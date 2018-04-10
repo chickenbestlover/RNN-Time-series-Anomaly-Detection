@@ -70,45 +70,9 @@ if torch.cuda.is_available():
 # Load data
 ###############################################################################
 TimeseriesData = preprocess_data.DataLoad(args.data)
-
-def batchify(data, bsz,data_type=args.data):
-    if data_type == 'nyc_taxi':
-        # Work out how cleanly we can divide the dataset into bsz parts.
-        nbatch = data['seqData'].size(0) // bsz
-        # Trim off any extra elements that wouldn't cleanly fit (remainders).
-        dataset = {}
-        for key in ['seqData','timeOfDay','dayOfWeek']:
-            dataset[key] = data[key].narrow(0, 0, nbatch * bsz)
-            # Evenly divide the data across the bsz batches.
-            dataset[key] = dataset[key].view(bsz, -1).t().contiguous().unsqueeze(2) # data: [ seq_length * batch_size * 1 ]
-
-        batched_data = torch.cat([dataset['seqData'],dataset['timeOfDay'],dataset['dayOfWeek']],dim=2)
-        # batched_data: [ seq_length * batch_size * feature_size ] , feature_size = 3
-    elif data_type == 'ecg':
-        # Work out how cleanly we can divide the dataset into bsz parts.
-        nbatch = data['seqData1'].size(0) // bsz
-        # Trim off any extra elements that wouldn't cleanly fit (remainders).
-        dataset = {}
-        for key in ['seqData1', 'seqData2']:
-            dataset[key] = data[key].narrow(0, 0, nbatch * bsz)
-            # Evenly divide the data across the bsz batches.
-            dataset[key] = dataset[key].view(bsz, -1).t().contiguous().unsqueeze(
-                2)  # data: [ seq_length * batch_size * 1 ]
-
-        batched_data = torch.cat([dataset['seqData1'], dataset['seqData2']], dim=2)
-        # batched_data: [ seq_length * batch_size * feature_size ] , feature_size = 2
-
-    if args.cuda:
-        batched_data = batched_data.cuda()
-
-    return batched_data
-
-
-train_dataset = batchify(TimeseriesData.trainData, args.batch_size)
-test_dataset = batchify(TimeseriesData.testData, args.eval_batch_size)
-gen_dataset = batchify(TimeseriesData.testData, 1)
-
-
+train_dataset = preprocess_data.batchify(args,TimeseriesData.trainData, args.batch_size)
+test_dataset = preprocess_data.batchify(args,TimeseriesData.testData, args.eval_batch_size)
+gen_dataset = preprocess_data.batchify(args,TimeseriesData.testData, 1)
 
 ###############################################################################
 # Build the model
@@ -116,7 +80,6 @@ gen_dataset = batchify(TimeseriesData.testData, 1)
 
 model = model.RNNPredictor(rnn_type = args.model, enc_inp_size=2, rnn_inp_size = args.emsize, rnn_hid_size = args.nhid,
                            dec_out_size=2, nlayers = args.nlayers, dropout = args.dropout, tie_weights= args.tied)
-
 if args.cuda:
     model.cuda()
 optimizer = optim.Adam(model.parameters(), lr= args.lr)
@@ -124,15 +87,11 @@ criterion = nn.MSELoss()
 ###############################################################################
 # Training code
 ###############################################################################
-
-
 def get_batch(source, i, evaluation=False):
     seq_len = min(args.bptt, len(source) - 1 - i)
     data = Variable(source[i:i+seq_len], volatile=evaluation) # [ seq_len * batch_size * feature_size ]
     target = Variable(source[i+1:i+1+seq_len]) # [ (seq_len x batch_size x feature_size) ]
     return data, target
-
-
 
 def generate_output(epoch, model, gen_dataset, startPoint=500, endPoint=3500):
     # Turn on evaluation mode which disables dropout.
