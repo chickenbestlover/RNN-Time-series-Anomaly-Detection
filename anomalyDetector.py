@@ -1,6 +1,6 @@
 from torch.autograd import Variable
 import torch
-
+import numpy as np
 
 def fit_norm_distribution_param(args, model, train_dataset, endPoint=10000, channel_idx=0):
     # Turn on evaluation mode which disables dropout.
@@ -75,7 +75,7 @@ def anomalyScore(args,model,test_dataset,mean,cov,endPoint=10000,channel_idx=0,s
             errors[t] = torch.zeros(1,args.prediction_window_size)
             if args.cuda:
                 errors[t] = errors[t].cuda()
-
+    predicted_scores = np.array(predicted_scores)
     scores = []
     for error in errors:
         mult1 = error-mean.unsqueeze(0) # [ 1 * prediction_window_size ]
@@ -84,5 +84,3 @@ def anomalyScore(args,model,test_dataset,mean,cov,endPoint=10000,channel_idx=0,s
         score = torch.mm(mult1,torch.mm(mult2,mult3))
         scores.append(score[0][0])
     return scores, organized, errors,hiddens, predicted_scores
-
-0

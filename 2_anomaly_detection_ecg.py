@@ -60,7 +60,8 @@ try:
    score_predictor = SVR(C=1.0,epsilon=0.2)
    score_predictor.fit(torch.cat(hiddens,dim=0).numpy(),train_scores)
 
-   scores, sorted_predictions,sorted_errors, _, predicted_scores = anomalyScore(args, model, test_dataset, mean, cov, endPoint,score_predictor=score_predictor,channel_idx=1)
+   scores, sorted_predictions,sorted_errors, _, predicted_scores = anomalyScore(args, model, test_dataset, mean, cov, endPoint,
+                                                                                score_predictor=score_predictor,channel_idx=1)
 
    sorted_predictions = torch.cat(sorted_predictions, dim=0)
    sorted_errors = torch.cat(sorted_errors,dim=0)
@@ -102,8 +103,8 @@ ax1.set_ylabel('Value',fontsize=15)
 ax1.set_xlabel('Index',fontsize=15)
 
 ax2 = ax1.twinx()
-ax2.plot(scores,label='Anomaly scores from \nmultivariate normal distribution', color='red', marker='.', linestyle='--', markersize=1, linewidth=1)
-ax2.plot(predicted_scores,label='Predicted anomaly scores from SVR', color='cyan', marker='.', linestyle='--', markersize=1, linewidth=1)
+ax2.plot(scores.reshape(3500,1)/predicted_scores,label='Anomaly scores from \nmultivariate normal distribution', color='red', marker='.', linestyle='--', markersize=1, linewidth=1)
+#ax2.plot(predicted_scores,label='Predicted anomaly scores from SVR', color='cyan', marker='.', linestyle='--', markersize=1, linewidth=1)
 
 ax2.legend(loc='upper right')
 ax2.set_ylabel('anomaly score',fontsize=15)

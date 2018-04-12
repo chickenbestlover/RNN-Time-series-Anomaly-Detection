@@ -43,6 +43,14 @@ __2D gesture__
 
 
 ## Example of usage
+__0. Download the dataset:__
+Download the 4 kinds of multivariate time-series dataset (ecg, gesture,power_demand, respiration, space_shuttle),
+and Label all the abnormality points in the dataset.
+```
+    python 0_download_dataset.py
+```
+
+
 __1. Time-series prediction:__
 Train and save RNN based time-series prediction model
 ```

@@ -78,7 +78,6 @@ gen_dataset = preprocess_data.batchify(args,TimeseriesData.testData, 1)
 ###############################################################################
 model = model.RNNPredictor(rnn_type = args.model, enc_inp_size=3, rnn_inp_size = args.emsize, rnn_hid_size = args.nhid,
                            dec_out_size=3, nlayers = args.nlayers, dropout = args.dropout, tie_weights= args.tied)
-print(list(model.parameters()))
 if args.cuda:
     model.cuda()
 optimizer = optim.Adam(model.parameters(), lr= args.lr)
