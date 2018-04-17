@@ -10,26 +10,29 @@ import preprocess_data
 from model import model
 from torch import optim
 from matplotlib import pyplot as plt
+from pathlib import Path
 import numpy as np
 import seaborn as sns
 import shutil
 
 parser = argparse.ArgumentParser(description='PyTorch RNN Prediction Model on Time-series Dataset')
-parser.add_argument('--data', type=str, default='gesture',
-                    help='type of the dataset')
+parser.add_argument('--data', type=str, default='ecg',
+                    help='type of the dataset (ecg, gesture, power_demand, space_shuttle, respiration, nyc_taxi')
+parser.add_argument('--filename', type=str, default='chfdb_chf13_45590.pkl',
+                    help='filename of the dataset')
 parser.add_argument('--model', type=str, default='LSTM',
                     help='type of recurrent net (RNN_TANH, RNN_RELU, LSTM, GRU, SRU)')
-parser.add_argument('--emsize', type=int, default=128,
-                    help='size of word embeddings')
-parser.add_argument('--nhid', type=int, default=128,
+parser.add_argument('--emsize', type=int, default=64,
+                    help='size of rnn input features')
+parser.add_argument('--nhid', type=int, default=64,
                     help='number of hidden units per layer')
-parser.add_argument('--nlayers', type=int, default=3,
+parser.add_argument('--nlayers', type=int, default=2,
                     help='number of layers')
 parser.add_argument('--lr', type=float, default=0.0002,
                     help='initial learning rate')
 parser.add_argument('--clip', type=float, default=0.25,
                     help='gradient clipping')
-parser.add_argument('--epochs', type=int, default=50,
+parser.add_argument('--epochs', type=int, default=100,
                     help='upper epoch limit')
 parser.add_argument('--batch_size', type=int, default=32, metavar='N',
                     help='batch size')
@@ -69,22 +72,22 @@ if torch.cuda.is_available():
 ###############################################################################
 # Load data
 ###############################################################################
+TimeseriesData = preprocess_data.PickleDataLoad(data_type=args.data,filename=args.filename)
+train_dataset = TimeseriesData.batchify(args,TimeseriesData.trainData, args.batch_size)
+test_dataset = TimeseriesData.batchify(args,TimeseriesData.testData, args.eval_batch_size)
+gen_dataset = TimeseriesData.batchify(args,TimeseriesData.testData, 1)
 
-TimeseriesData = preprocess_data.DataLoad(args.data)
-train_dataset = preprocess_data.batchify(args,TimeseriesData.trainData, args.batch_size)
-test_dataset = preprocess_data.batchify(args,TimeseriesData.testData, args.eval_batch_size)
-gen_dataset = preprocess_data.batchify(args,TimeseriesData.testData, 1)
 
 ###############################################################################
 # Build the model
 ###############################################################################
-model = model.RNNPredictor(rnn_type = args.model, enc_inp_size=2, rnn_inp_size = args.emsize, rnn_hid_size = args.nhid,
-                           dec_out_size=2, nlayers = args.nlayers, dropout = args.dropout, tie_weights= args.tied)
+
+model = model.RNNPredictor(rnn_type = args.model, enc_inp_size=TimeseriesData.trainData.size(1), rnn_inp_size = args.emsize, rnn_hid_size = args.nhid,
+                           dec_out_size=TimeseriesData.trainData.size(1), nlayers = args.nlayers, dropout = args.dropout, tie_weights= args.tied)
 if args.cuda:
     model.cuda()
 optimizer = optim.Adam(model.parameters(), lr= args.lr)
 criterion = nn.MSELoss()
-
 ###############################################################################
 # Training code
 ###############################################################################
@@ -94,73 +97,44 @@ def get_batch(source, i, evaluation=False):
     target = Variable(source[i+1:i+1+seq_len]) # [ (seq_len x batch_size x feature_size) ]
     return data, target
 
-def generate_output(epoch, model, gen_dataset, startPoint=500, endPoint=3000):
+def generate_output(args,epoch, model, gen_dataset, startPoint=500, endPoint=3500):
     # Turn on evaluation mode which disables dropout.
     model.eval()
     hidden = model.init_hidden(1)
-    outSeq1 = []
-    outSeq2 = []
+    outSeq = []
     for i in range(endPoint):
-
         if i>startPoint:
             out, hidden = model.forward(out, hidden)
         else:
             out, hidden = model.forward(Variable(gen_dataset[i].unsqueeze(0), volatile=True), hidden)
+        outSeq.append(out.data.cpu()[0][0].unsqueeze(0))
+    outSeq = torch.cat(outSeq,dim=0) # [seqLength * feature_dim]
+    target= preprocess_data.reconstruct(gen_dataset.cpu().numpy(), TimeseriesData.mean, TimeseriesData.std)
+    outSeq = preprocess_data.reconstruct(outSeq.numpy(), TimeseriesData.mean, TimeseriesData.std)
 
-        outSeq1.append(out.data.cpu()[0][0][0])
-        outSeq2.append(out.data.cpu()[0][0][1])
-
-
-
-    target1= preprocess_data.reconstruct(gen_dataset.cpu()[:, 0, 0].numpy(),
-                                         TimeseriesData.trainData['seqData1_mean'],
-                                         TimeseriesData.trainData['seqData1_std'])
-
-    target2 = preprocess_data.reconstruct(gen_dataset.cpu()[:, 0, 1].numpy(),
-                                          TimeseriesData.trainData['seqData2_mean'],
-                                          TimeseriesData.trainData['seqData2_std'])
-
-    outSeq1 = preprocess_data.reconstruct(np.array(outSeq1),
-                                          TimeseriesData.trainData['seqData1_mean'],
-                                          TimeseriesData.trainData['seqData1_std'])
-    outSeq2 = preprocess_data.reconstruct(np.array(outSeq2),
-                                          TimeseriesData.trainData['seqData2_mean'],
-                                          TimeseriesData.trainData['seqData2_std'])
     plt.figure(figsize=(15,5))
+    for i in range(target.size(-1)):
+        plt.plot(target[:,:,i].numpy(), label='Target'+str(i),
+                 color='black', marker='.', linestyle='--', markersize=1, linewidth=0.5)
+        plt.plot(range(startPoint), outSeq[:startPoint,i].numpy(), label='1-step predictions for target'+str(i),
+                 color='green', marker='.', linestyle='--', markersize=1.5, linewidth=1)
+        plt.plot(range(startPoint, endPoint), outSeq[startPoint:,i].numpy(), label='Recursive predictions for target'+str(i),
+                 color='blue', marker='.', linestyle='--', markersize=1.5, linewidth=1)
 
-    plot1 = plt.plot(target1,
-                     label='Target1', color='black', marker='.', linestyle='--', markersize=1, linewidth=0.5)
-    plot2 = plt.plot(target2,
-                     label='Target2', color='gray', marker='.', linestyle='--', markersize=1, linewidth=0.5)
-    plot3 = plt.plot(range(startPoint), outSeq1[:startPoint],
-                     label='1-step predictions for target1', color='green', marker='.', linestyle='--', markersize=1.5, linewidth=1)
-    plot4 = plt.plot(range(startPoint), outSeq2[:startPoint],
-                     label='1-step predictions for target2', color='darkgreen', marker='.', linestyle='--', markersize=1.5,
-                     linewidth=1)
-
-    plot5 = plt.plot(range(startPoint, endPoint, 1), outSeq1[startPoint:],
-                     label='Multi-step predictions for target1', color='blue', marker='.', linestyle='--', markersize=1.5,
-                     linewidth=1)
-    plot6 = plt.plot(range(startPoint, endPoint, 1), outSeq2[startPoint:],
-                     label='Multi-step predictions for target1', color='navy', marker='.', linestyle='--',
-                     markersize=1.5,linewidth=1)
-    plt.xlim([0, endPoint])
-
+    plt.xlim([startPoint-500, endPoint])
     plt.xlabel('Index',fontsize=15)
     plt.ylabel('Value',fontsize=15)
-
     plt.title('Time-series Prediction on ' + args.data + ' Dataset', fontsize=18, fontweight='bold')
     plt.legend()
     plt.tight_layout()
-    plt.text(10, 590, 'Epoch: '+str(epoch),fontsize=15)
-
-    plt.savefig('result/'+args.data+'/fig_epoch'+str(epoch)+'.png')
+    plt.text(startPoint-500+10, target.min(), 'Epoch: '+str(epoch),fontsize=15)
+    save_dir = Path('result',args.data,args.filename).with_suffix('')
+    save_dir.mkdir(parents=True,exist_ok=True)
+    plt.savefig(save_dir.joinpath('fig_epoch'+str(epoch)).with_suffix('.png'))
     #plt.show()
     plt.close()
 
-
-
-    return outSeq1
+    return outSeq
 
 def evaluate(args, model, test_dataset):
     # Turn on evaluation mode which disables dropout.
@@ -170,13 +144,6 @@ def evaluate(args, model, test_dataset):
     for nbatch, i in enumerate(range(0, test_dataset.size(0) - 1, args.bptt)):
 
         inputSeq, targetSeq = get_batch(test_dataset, i, evaluation=True)
-        # outVal = inputSeq[0].unsqueeze(0)
-        # outVals = []
-        # for i in range(inputSeq.size(0)):
-        #     outVal, hidden = model.forward(outVal, hidden)
-        #     outVals.append(outVal)
-        # outSeq = torch.cat(outVals, dim=0)
-
         outSeq, hidden = model.forward(inputSeq, hidden)
 
         loss = criterion(outSeq.view(args.batch_size,-1), targetSeq.view(args.batch_size,-1))
@@ -211,19 +178,12 @@ def train(args, model, train_dataset):
                 outVals.append(outVal)
             outSeq = torch.cat(outVals,dim=0)
 
-        #print('outSeq:',outSeq.size())
-
-        #print('targetSeq:', targetSeq.size())
-
         loss = criterion(outSeq.view(args.batch_size,-1), targetSeq.view(args.batch_size,-1))
         loss.backward()
 
         # `clip_grad_norm` helps prevent the exploding gradient problem in RNNs / LSTMs.
         torch.nn.utils.clip_grad_norm(model.parameters(), args.clip)
         optimizer.step()
-
-        # for p in model2_for_timeDiff.parameters():
-        #    p.data.add_(-lr, p.grad.data)
 
         total_loss += loss.data
 
@@ -241,11 +201,11 @@ def train(args, model, train_dataset):
 lr = args.lr
 best_val_loss = None
 teacher_forcing_ratio = 1
-
+start_epoch = 1
 if args.resume or args.pretrained:
     print("=> loading checkpoint ")
-    checkpoint = torch.load('./save/'+args.data+'/checkpoint.pth.tar')
-    args.start_epoch = checkpoint['epoch']
+    checkpoint = torch.load(Path('save',args.data,'checkpoint',args.filename).with_suffix('.pth'))
+    start_epoch = checkpoint['epoch']
     best_loss = checkpoint['best_loss']
     model.load_state_dict(checkpoint['state_dict'])
     optimizer.load_state_dict((checkpoint['optimizer']))
@@ -259,7 +219,7 @@ save_interval=10
 best_val_loss=0
 if not args.pretrained:
     try:
-        for epoch in range(1, args.epochs+1):
+        for epoch in range(start_epoch, args.epochs+1):
 
             epoch_start_time = time.time()
             train(args,model,train_dataset)
@@ -280,9 +240,7 @@ if not args.pretrained:
                                     'args':args
                                     }
                 model.save_checkpoint(args, model_dictionary, is_best)
-            generate_output(epoch,model,gen_dataset,startPoint=1000)
-
-
+            generate_output(args,epoch,model,gen_dataset,startPoint=1500)
 
     except KeyboardInterrupt:
         print('-' * 89)

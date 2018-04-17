@@ -2,7 +2,7 @@ from torch.autograd import Variable
 import torch
 import numpy as np
 
-def fit_norm_distribution_param(args, model, train_dataset, endPoint=10000, channel_idx=0):
+def fit_norm_distribution_param(args, model, train_dataset, channel_idx=0):
     # Turn on evaluation mode which disables dropout.
     model.eval()
     pasthidden = model.init_hidden(1)
@@ -10,7 +10,7 @@ def fit_norm_distribution_param(args, model, train_dataset, endPoint=10000, chan
     organized = []
     errors = []
     #out = Variable(test_dataset[0].unsqueeze(0))
-    for t in range(endPoint):
+    for t in range(len(train_dataset)):
         out, hidden = model.forward(Variable(train_dataset[t].unsqueeze(0), volatile=True), pasthidden)
         predictions.append([])
         organized.append([])
@@ -37,7 +37,7 @@ def fit_norm_distribution_param(args, model, train_dataset, endPoint=10000, chan
     return mean, cov
 
 
-def anomalyScore(args,model,test_dataset,mean,cov,endPoint=10000,channel_idx=0,score_predictor=None):
+def anomalyScore(args, model, dataset, mean, cov, channel_idx=0, score_predictor=None):
     # Turn on evaluation mode which disables dropout.
     model.eval()
     pasthidden = model.init_hidden(1)
@@ -47,8 +47,8 @@ def anomalyScore(args,model,test_dataset,mean,cov,endPoint=10000,channel_idx=0,s
     hiddens = []
     predicted_scores = []
     # out = Variable(test_dataset[0].unsqueeze(0))
-    for t in range(endPoint):
-        out, hidden = model.forward(Variable(test_dataset[t].unsqueeze(0), volatile=True), pasthidden)
+    for t in range(len(dataset)):
+        out, hidden = model.forward(Variable(dataset[t].unsqueeze(0), volatile=True), pasthidden)
         predictions.append([])
         organized.append([])
         errors.append([])
@@ -67,7 +67,7 @@ def anomalyScore(args,model,test_dataset,mean,cov,endPoint=10000,channel_idx=0,s
                 organized[t].append(
                     predictions[step + t - args.prediction_window_size][args.prediction_window_size - 1 - step])
             organized[t] =torch.FloatTensor(organized[t]).unsqueeze(0)
-            errors[t] = organized[t] - test_dataset[t][0][channel_idx]
+            errors[t] = organized[t] - dataset[t][0][channel_idx]
             if args.cuda:
                 errors[t] = errors[t].cuda()
         else:

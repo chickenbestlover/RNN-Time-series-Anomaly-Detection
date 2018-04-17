@@ -4,6 +4,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from cuda_functional import SRU, SRUCell
 import shutil
+from pathlib import Path
 
 class RNNPredictor(nn.Module):
     """Container module with an encoder, a recurrent module, and a decoder."""
@@ -47,7 +48,7 @@ class RNNPredictor(nn.Module):
 
     def forward(self, input, hidden):
         emb = self.drop(self.encoder(input.contiguous().view(-1,self.enc_input_size))) # [(seq_len x batch_size) * feature_size]
-        emb = emb.view(input.size(0), input.size(1), self.rnn_hid_size) # [ seq_len * batch_size * feature_size]
+        emb = emb.view(-1, input.size(1), self.rnn_hid_size) # [ seq_len * batch_size * feature_size]
         output, hidden = self.rnn(emb, hidden)
         output = self.drop(output)
         decoded = self.decoder(output.view(output.size(0)*output.size(1), output.size(2))) # [(seq_len x batch_size) * feature_size]
@@ -72,10 +73,18 @@ class RNNPredictor(nn.Module):
 
     def save_checkpoint(self, args, state, is_best):
         print("=> saving checkpoint ..")
-        filename = './save/' + args.data + '/checkpoint.pth.tar'
-        torch.save(state, filename)
+        checkpoint_dir = Path('save',args.data,'checkpoint')
+        checkpoint_dir.mkdir(parents=True,exist_ok=True)
+
+        #filename = './save/' + args.data + '/checkpoint/'+args.filename[:-3]+'pth'
+        checkpoint = checkpoint_dir.joinpath(args.filename).with_suffix('.pth')
+        torch.save(state, checkpoint)
         if is_best:
-            shutil.copyfile(filename, './save/' + args.data + '/model_best.pth.tar')
+            model_best_dir = Path('save',args.data,'model_best')
+            model_best_dir.mkdir(parents=True,exist_ok=True)
+
+            shutil.copyfile(checkpoint, model_best_dir.joinpath(args.filename).with_suffix('.pth'))
+
         print('=> checkpoint saved.')
 
     def extract_hidden(self, hidden):

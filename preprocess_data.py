@@ -4,6 +4,8 @@ import glob
 import datetime
 import numpy as np
 import shutil
+from pathlib import Path
+import pickle
 
 def normalization(seqData,max,min):
     return (seqData -min)/(max-min)
@@ -16,18 +18,61 @@ def reconstruct(seqData,mean,std):
 
 
 def DataLoad(data_type):
-
-    #try:
     if data_type == 'nyc_taxi':
         return NYCDataLoad('./dataset/'+ data_type +'/')
     elif data_type == 'gesture':
         return GestureDataLoad('./dataset/' + data_type + '/')
     elif data_type == 'ecg':
         return ECGDataLoad('./dataset/' + data_type + '/')
-        #else:
-        #    raise ValueError
-    #except ValueError:
-    #    print("Uknown data type: " + data_type)
+
+
+class PickleDataLoad(object):
+    def __init__(self, data_type,filename,augment=True):
+        self.augment=augment
+        self.trainData, self.trainLabel = self.preprocessing(Path('dataset',data_type,'labeled','train',filename),train=True)
+        self.testData, self.testLabel = self.preprocessing(Path('dataset',data_type,'labeled','test',filename),train=False)
+
+    def augmentation(self,data,label):
+        noiseSeq = torch.randn(data.size())
+        augmentedData = data.clone()
+        augmentedLabel = label.clone()
+        noise_ratio = 0.1
+        for i in np.arange(0, noise_ratio, 0.005):
+            scaled_noiseSeq = noise_ratio * self.std.expand_as(data) * noiseSeq
+            augmentedData = torch.cat([augmentedData, data + scaled_noiseSeq], dim=0)
+            augmentedLabel = torch.cat([augmentedLabel, label])
+        return augmentedData, augmentedLabel
+
+    def preprocessing(self, path, train=True):
+        """ Read, Standardize, Augment """
+
+        with open(path, 'rb') as f:
+            data = torch.FloatTensor(pickle.load(f))
+            label = data[:,-1]
+            data = data[:,:-1]
+        if train:
+            self.mean = data.mean(dim=0)
+            self.std= data.std(dim=0)
+
+        if self.augment:
+            data,label = self.augmentation(data,label)
+        data = standardization(data,self.mean,self.std)
+
+        return data,label
+
+    def batchify(self,args,data, bsz):
+        nbatch = data.size(0) // bsz
+        trimmed_data = data.narrow(0,0,nbatch * bsz)
+        batched_data = []
+        for channel in range(trimmed_data.size(-1)):
+            batched_data.append(trimmed_data[:,channel].contiguous().view(bsz,-1).t().unsqueeze(2))
+        batched_data = torch.cat(batched_data,dim=2)
+        if args.cuda:
+            batched_data = batched_data.cuda()
+
+        return batched_data
+
+
 
 
 class NYCDataLoad(object):
