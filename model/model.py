@@ -9,7 +9,8 @@ from pathlib import Path
 class RNNPredictor(nn.Module):
     """Container module with an encoder, a recurrent module, and a decoder."""
 
-    def __init__(self, rnn_type, enc_inp_size, rnn_inp_size, rnn_hid_size, dec_out_size, nlayers, dropout=0.5, tie_weights=False):
+    def __init__(self, rnn_type, enc_inp_size, rnn_inp_size, rnn_hid_size, dec_out_size, nlayers, dropout=0.5,
+                 tie_weights=False,res_connection=False):
         super(RNNPredictor, self).__init__()
         self.enc_input_size = enc_inp_size
 
@@ -33,9 +34,8 @@ class RNNPredictor(nn.Module):
             if rnn_hid_size != rnn_inp_size:
                 raise ValueError('When using the tied flag, nhid must be equal to emsize')
             self.decoder.weight = self.encoder.weight
-
+        self.res_connection=res_connection
         self.init_weights()
-
         self.rnn_type = rnn_type
         self.rnn_hid_size = rnn_hid_size
         self.nlayers = nlayers
@@ -46,14 +46,18 @@ class RNNPredictor(nn.Module):
         self.decoder.bias.data.fill_(0)
         self.decoder.weight.data.uniform_(-initrange, initrange)
 
-    def forward(self, input, hidden):
+    def forward(self, input, hidden, return_hiddens=False):
         emb = self.drop(self.encoder(input.contiguous().view(-1,self.enc_input_size))) # [(seq_len x batch_size) * feature_size]
         emb = emb.view(-1, input.size(1), self.rnn_hid_size) # [ seq_len * batch_size * feature_size]
         output, hidden = self.rnn(emb, hidden)
         output = self.drop(output)
         decoded = self.decoder(output.view(output.size(0)*output.size(1), output.size(2))) # [(seq_len x batch_size) * feature_size]
         decoded = decoded.view(output.size(0), output.size(1), decoded.size(1)) # [ seq_len * batch_size * feature_size]
-        #decoded = decoded + input
+        if self.res_connection:
+            decoded = decoded + input
+        if return_hiddens:
+            return decoded,hidden,output
+
         return decoded, hidden
 
     def init_hidden(self, bsz):

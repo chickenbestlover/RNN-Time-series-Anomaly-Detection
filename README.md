@@ -9,6 +9,7 @@ This is an implementation of RNN based time-series anomaly detector, which consi
 * Pytorch 0.3.1+
 * Numpy
 * Matplotlib
+* Scikit-learn
 
 ## Dataset
 __NYC taxi passenger count__

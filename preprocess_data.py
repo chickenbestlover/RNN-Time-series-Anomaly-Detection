@@ -46,7 +46,7 @@ class PickleDataLoad(object):
     def preprocessing(self, path, train=True):
         """ Read, Standardize, Augment """
 
-        with open(path, 'rb') as f:
+        with open(str(path), 'rb') as f:
             data = torch.FloatTensor(pickle.load(f))
             label = data[:,-1]
             data = data[:,:-1]
@@ -63,13 +63,9 @@ class PickleDataLoad(object):
     def batchify(self,args,data, bsz):
         nbatch = data.size(0) // bsz
         trimmed_data = data.narrow(0,0,nbatch * bsz)
-        batched_data = []
-        for channel in range(trimmed_data.size(-1)):
-            batched_data.append(trimmed_data[:,channel].contiguous().view(bsz,-1).t().unsqueeze(2))
-        batched_data = torch.cat(batched_data,dim=2)
+        batched_data = trimmed_data.contiguous().view(bsz, -1, trimmed_data.size(-1)).transpose(0,1)
         if args.cuda:
             batched_data = batched_data.cuda()
-
         return batched_data
 
 

@@ -22,21 +22,25 @@ parser.add_argument('--filename', type=str, default='chfdb_chf13_45590.pkl',
                     help='filename of the dataset')
 parser.add_argument('--model', type=str, default='LSTM',
                     help='type of recurrent net (RNN_TANH, RNN_RELU, LSTM, GRU, SRU)')
-parser.add_argument('--emsize', type=int, default=64,
+parser.add_argument('--emsize', type=int, default=32,
                     help='size of rnn input features')
-parser.add_argument('--nhid', type=int, default=64,
+parser.add_argument('--nhid', type=int, default=32,
                     help='number of hidden units per layer')
 parser.add_argument('--nlayers', type=int, default=2,
                     help='number of layers')
+parser.add_argument('--res_connection', action='store_true',
+                    help='residual connection')
 parser.add_argument('--lr', type=float, default=0.0002,
                     help='initial learning rate')
+parser.add_argument('--weight_decay', type=float, default=1e-4,
+                    help='weight decay')
 parser.add_argument('--clip', type=float, default=0.25,
                     help='gradient clipping')
-parser.add_argument('--epochs', type=int, default=100,
+parser.add_argument('--epochs', type=int, default=50,
                     help='upper epoch limit')
-parser.add_argument('--batch_size', type=int, default=32, metavar='N',
+parser.add_argument('--batch_size', type=int, default=64, metavar='N',
                     help='batch size')
-parser.add_argument('--eval_batch_size', type=int, default=32, metavar='N',
+parser.add_argument('--eval_batch_size', type=int, default=64, metavar='N',
                     help='eval_batch size')
 parser.add_argument('--bptt', type=int, default=50,
                     help='sequence length')
@@ -82,11 +86,18 @@ gen_dataset = TimeseriesData.batchify(args,TimeseriesData.testData, 1)
 # Build the model
 ###############################################################################
 
-model = model.RNNPredictor(rnn_type = args.model, enc_inp_size=TimeseriesData.trainData.size(1), rnn_inp_size = args.emsize, rnn_hid_size = args.nhid,
-                           dec_out_size=TimeseriesData.trainData.size(1), nlayers = args.nlayers, dropout = args.dropout, tie_weights= args.tied)
+model = model.RNNPredictor(rnn_type = args.model,
+                           enc_inp_size=TimeseriesData.trainData.size(1),
+                           rnn_inp_size = args.emsize,
+                           rnn_hid_size = args.nhid,
+                           dec_out_size=TimeseriesData.trainData.size(1),
+                           nlayers = args.nlayers,
+                           dropout = args.dropout,
+                           tie_weights= args.tied,
+                           res_connection=args.res_connection)
 if args.cuda:
     model.cuda()
-optimizer = optim.Adam(model.parameters(), lr= args.lr)
+optimizer = optim.Adam(model.parameters(), lr= args.lr,weight_decay=args.weight_decay)
 criterion = nn.MSELoss()
 ###############################################################################
 # Training code
@@ -152,7 +163,7 @@ def evaluate(args, model, test_dataset):
 
     return total_loss[0] / nbatch
 
-def train(args, model, train_dataset):
+def train_(args, model, train_dataset,epoch):
     # Turn on training mode which enables dropout.
     model.train()
     total_loss = 0
@@ -167,7 +178,7 @@ def train(args, model, train_dataset):
         # If we didn't, the model would try backpropagating all the way to start of the dataset.
         hidden = model.repackage_hidden(hidden)
         optimizer.zero_grad()
-        USE_TEACHER_FORCING =  random.random() < args.teacher_forcing_ratio
+        USE_TEACHER_FORCING =  random.random() < math.pow(1.01,-epoch)
         if USE_TEACHER_FORCING:
             outSeq, hidden = model.forward(inputSeq, hidden)
         else:
@@ -197,10 +208,67 @@ def train(args, model, train_dataset):
             total_loss = 0
             start_time = time.time()
 
+def train(args, model, train_dataset,epoch):
+    # Turn on training mode which enables dropout.
+    model.train()
+    total_loss = 0
+    start_time = time.time()
+    hidden = model.init_hidden(args.batch_size)
+    for batch, i in enumerate(range(0, train_dataset.size(0) - 1, args.bptt)):
+        inputSeq, targetSeq = get_batch(train_dataset, i)
+        # inputSeq: [ seq_len * batch_size * feature_size ]
+        # targetSeq: [ seq_len * batch_size * feature_size ]
+
+        # Starting each batch, we detach the hidden state from how it was previously produced.
+        # If we didn't, the model would try backpropagating all the way to start of the dataset.
+        hidden = model.repackage_hidden(hidden)
+        hidden_ = model.repackage_hidden(hidden)
+        optimizer.zero_grad()
+
+        '''Loss1: Free running loss'''
+        outVal = inputSeq[0].unsqueeze(0)
+        outVals=[]
+        hids1 = []
+        for i in range(inputSeq.size(0)):
+            outVal, hidden_, hid = model.forward(outVal, hidden_,return_hiddens=True)
+            outVals.append(outVal)
+            hids1.append(hid)
+        outSeq1 = torch.cat(outVals,dim=0)
+        hids1 = torch.cat(hids1,dim=0)
+        loss1 = criterion(outSeq1.view(args.batch_size,-1), targetSeq.view(args.batch_size,-1))
+
+        '''Loss2: Teacher forcing loss'''
+        outSeq2, hidden, hids2 = model.forward(inputSeq, hidden, return_hiddens=True)
+        loss2 = criterion(outSeq2.view(args.batch_size, -1), targetSeq.view(args.batch_size, -1))
+
+        '''Loss3: Simplified Professor forcing loss'''
+        loss3 = criterion(hids1.view(args.batch_size,-1), Variable(hids2.view(args.batch_size,-1).data,volatile=True))
+
+        '''Total loss = Loss1+Loss2+Loss3'''
+        loss = loss1+loss2+loss3
+        loss.backward()
+
+        # `clip_grad_norm` helps prevent the exploding gradient problem in RNNs / LSTMs.
+        torch.nn.utils.clip_grad_norm(model.parameters(), args.clip)
+        optimizer.step()
+
+        total_loss += loss.data
+
+        if batch % args.log_interval == 0 and batch > 0:
+            cur_loss = total_loss[0] / args.log_interval
+            elapsed = time.time() - start_time
+            print('| epoch {:3d} | {:5d}/{:5d} batches | ms/batch {:5.4f} | '
+                  'loss {:5.2f} '.format(
+                epoch, batch, len(train_dataset) // args.bptt,
+                              elapsed * 1000 / args.log_interval, cur_loss))
+            total_loss = 0
+            start_time = time.time()
+
+
+
 # Loop over epochs.
 lr = args.lr
 best_val_loss = None
-teacher_forcing_ratio = 1
 start_epoch = 1
 if args.resume or args.pretrained:
     print("=> loading checkpoint ")
@@ -222,7 +290,7 @@ if not args.pretrained:
         for epoch in range(start_epoch, args.epochs+1):
 
             epoch_start_time = time.time()
-            train(args,model,train_dataset)
+            train(args,model,train_dataset,epoch)
             val_loss = evaluate(args,model,test_dataset)
             print('-' * 89)
             print('| end of epoch {:3d} | time: {:5.2f}s | valid loss {:5.4f} | '.format(epoch, (time.time() - epoch_start_time),
