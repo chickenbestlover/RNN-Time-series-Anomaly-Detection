@@ -12,23 +12,32 @@ This is an implementation of RNN based time-series anomaly detector, which consi
 * Scikit-learn
 
 ## Dataset
-__NYC taxi passenger count__
+__1. NYC taxi passenger count__
  * The New York City taxi passenger data stream, provided by the [New
 York City Transportation Authority](http://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml )
  * preprocessed (aggregated at 30 min intervals) by Cui, Yuwei, et al. in ["A comparative study of HTM and other neural network models for online sequence learning with streaming data." Neural Networks (IJCNN), 2016 International Joint Conference on. IEEE, 2016.](http://ieeexplore.ieee.org/abstract/document/7727380/)
   , [code](https://github.com/numenta/htmresearch/tree/master/projects/sequence_prediction)
 
-__Electrocardiograms (ECGs)__
- * The ECG dataset containing a single anomaly corresponding to a pre-ventricular contraction, provided by E. Keogh et al. in
+__2. Electrocardiograms (ECGs)__
+ * The ECG dataset containing a single anomaly corresponding to a pre-ventricular contraction
+
+__3. 2D gesture (video surveilance)__
+ * X Y coordinate of hand gesture in a video
+
+__4. Respiration__
+ * A patients respiration (measured by thorax extension, sampling rate 10Hz)
+
+__5. Space shuttle__
+ * Space Shuttle Marotta Valve time-series
+
+__6. Power demand__
+ * One years power demand at a Dutch research facility
+
+The Time-series 2~6 are provided by E. Keogh et al. in
 ["HOT SAX: Efficiently Finding the Most Unusual Time Series Subsequence." In The Fifth IEEE International Conference on Data Mining. (2005)
 ](http://ieeexplore.ieee.org/abstract/document/1565683/)
   , [dataset](http://www.cs.ucr.edu/~eamonn/discords/)
 
-__2D gesture__
- * X Y coordinate of hand gesture in a video, provided by E. Keogh et al. in
-["HOT SAX: Efficiently Finding the Most Unusual Time Series Subsequence." In The Fifth IEEE International Conference on Data Mining. (2005)
-](http://ieeexplore.ieee.org/abstract/document/1565683/)
-  , [dataset](http://www.cs.ucr.edu/~eamonn/discords/)
 
 ## Implemented Algorithms
 * RNN based Multi-step predictor
@@ -55,15 +64,13 @@ and Label all the abnormality points in the dataset.
 __1. Time-series prediction:__
 Train and save RNN based time-series prediction model
 ```
-    python 1_train_predictor_ecg.py
-    python 1_train_predictor_nyc.py
+    python 1_train_predictor.py --data ecg --filename chfdb_chf14_45590.pkl
 ```
 __2. Anomaly detection:__
 Fit multivariate gaussian distribution on train dataset and
 calculate anomaly scores on test dataset
 ```
-    python 2_anomaly_detection_ecg.py
-    python 2_anomaly_detection_nyc.py
+    python 2_anomaly_detection.py --data ecg --filename chfdb_chf14_45590.pkl
 ```
 ## Result
 __1. Time-series prediction:__
