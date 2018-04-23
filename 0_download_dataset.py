@@ -37,10 +37,12 @@ for dataname in urls:
 
     for filepath in raw_dir.glob('*.txt'):
         with open(str(filepath)) as f:
+            # Label anomaly points as 1 in the dataset
             labeled_data=[]
             for i, line in enumerate(f):
                 tokens = [float(token) for token in line.split()]
                 if raw_dir.parent.name== 'ecg':
+                    # Remove time-step channel
                     tokens.pop(0)
                 if filepath.name == 'chfdbchf15.txt':
                     tokens.append(1.0) if 2250 < i < 2400 else tokens.append(0.0)
@@ -73,20 +75,23 @@ for dataname in urls:
                 elif filename == 'nprs43.txt':
                     tokens.append(1) if 12928 < i < 13433 or 14877 < i < 15924 else tokens.append(0)
                 elif filename == 'power_data.txt':
-                    tokens.append(1) if 8257 < i < 8900 or 11348 < i < 12350 or 23128 < i < 35039 else tokens.append(0)
+                    tokens.append(1) if 8257 < i < 8900 or 11348 < i < 12350 or 34376 < i < 35039 else tokens.append(0)
                 labeled_data.append(tokens)
 
+            # Filled in the point where there is no signal value.
             if filepath.name == 'ann_gun_CentroidA.txt':
                 for i, datapoint in enumerate(labeled_data):
                     for j,channel in enumerate(datapoint[:-1]):
                         if channel == 0.0:
                             labeled_data[i][j] = 0.5 * labeled_data[i - 1][j] + 0.5 * labeled_data[i + 1][j]
 
+            # Save the labeled dataset as .pkl extension
             labeled_whole_dir = raw_dir.parent.joinpath('labeled', 'whole')
             labeled_whole_dir.mkdir(parents=True, exist_ok=True)
             with open(str(labeled_whole_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
                 pickle.dump(labeled_data, pkl)
 
+            # Divide the labeled dataset into trainset and testset, then save them
             labeled_train_dir = raw_dir.parent.joinpath('labeled','train')
             labeled_train_dir.mkdir(parents=True,exist_ok=True)
             labeled_test_dir = raw_dir.parent.joinpath('labeled','test')
@@ -96,11 +101,81 @@ for dataname in urls:
                     pickle.dump(labeled_data[:2439], pkl)
                 with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
                     pickle.dump(labeled_data[2439:3726], pkl)
+            elif filepath.name == 'chfdb_chf01_275.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[:1833], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[1833:3674], pkl)
+            elif filepath.name == 'chfdbchf15.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[3381:14244], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[33:3381], pkl)
+            elif filepath.name == 'qtdbsel102.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[10093:44828], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[211:10093], pkl)
+            elif filepath.name == 'mitdb__100_180.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[2328:5271], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[73:2328], pkl)
+            elif filepath.name == 'stdb_308_0.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[2986:5359], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[265:2986], pkl)
+            elif filepath.name == 'ltstdb_20321_240.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[1520:3531], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[73:1520], pkl)
+            elif filepath.name == 'xmitdb_x108_0.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[424:3576], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[3576:5332], pkl)
+            elif filepath.name == 'ltstdb_20221_43.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[1121:3731], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[0:1121], pkl)
             elif filepath.name == 'ann_gun_CentroidA.txt':
                 with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
                     pickle.dump(labeled_data[3000:], pkl)
                 with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
                     pickle.dump(labeled_data[:3000], pkl)
+            elif filepath.name == 'nprs44.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[363:12955], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[12955:24082], pkl)
+            elif filepath.name == 'nprs43.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[4285:10498], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[10498:17909], pkl)
+            elif filepath.name == 'power_data.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[15287:33432], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[501:15287], pkl)
+            elif filepath.name == 'TEK17.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[2469:4588], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[1543:2469], pkl)
+            elif filepath.name == 'TEK16.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[521:3588], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[3588:4539], pkl)
+            elif filepath.name == 'TEK14.txt':
+                with open(str(labeled_train_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[2089:4098], pkl)
+                with open(str(labeled_test_dir.joinpath(filepath.name).with_suffix('.pkl')), 'wb') as pkl:
+                    pickle.dump(labeled_data[97:2089], pkl)
 
 nyc_taxi_raw_path = Path('dataset/nyc_taxi/raw/nyc_taxi.csv')
 labeled_data = []
