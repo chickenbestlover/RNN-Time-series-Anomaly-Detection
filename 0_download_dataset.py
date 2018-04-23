@@ -64,18 +64,18 @@ for dataname in urls:
                     tokens.append(1.0) if 4230 < i < 4430 else tokens.append(0.0)
                 elif filepath.name == 'ann_gun_CentroidA.txt':
                     tokens.append(1.0) if 2070 < i < 2810 else tokens.append(0.0)
-                elif filename == 'TEK16.txt':
+                elif filepath.name == 'TEK16.txt':
                     tokens.append(1.0) if 4270 < i < 4370 else tokens.append(0.0)
-                elif filename == 'TEK17.txt':
+                elif filepath.name == 'TEK17.txt':
                     tokens.append(1.0) if 2100 < i < 2145 else tokens.append(0.0)
-                elif filename == 'TEK14.txt':
+                elif filepath.name == 'TEK14.txt':
                     tokens.append(1.0) if 1100 < i < 1200 or 1455 < i < 1955 else tokens.append(0.0)
-                elif filename == 'nprs44.txt':
-                    tokens.append(1) if 20474 < i < 20928 else tokens.append(0)
-                elif filename == 'nprs43.txt':
-                    tokens.append(1) if 12928 < i < 13433 or 14877 < i < 15924 else tokens.append(0)
-                elif filename == 'power_data.txt':
-                    tokens.append(1) if 8257 < i < 8900 or 11348 < i < 12350 or 34376 < i < 35039 else tokens.append(0)
+                elif filepath.name == 'nprs44.txt':
+                    tokens.append(1.0) if 16192 < i < 16638 or 20457 < i < 20911 else tokens.append(0.0)
+                elif filepath.name == 'nprs43.txt':
+                    tokens.append(1.0) if 12929 < i < 13432 or 14877 < i < 15086 or 15729 < i < 15924 else tokens.append(0.0)
+                elif filepath.name == 'power_data.txt':
+                    tokens.append(1.0) if 8254 < i < 8998 or 11348 < i < 12143 or 33883 < i < 34601 else tokens.append(0.0)
                 labeled_data.append(tokens)
 
             # Filled in the point where there is no signal value.
