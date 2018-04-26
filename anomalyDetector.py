@@ -24,7 +24,10 @@ def fit_norm_distribution_param(args, model, train_dataset, channel_idx=0):
         if t >= args.prediction_window_size:
             for step in range(args.prediction_window_size):
                 organized[t].append(predictions[step+t-args.prediction_window_size][args.prediction_window_size-1-step])
-            errors[t] = torch.FloatTensor(organized[t]) - train_dataset[t][0][channel_idx]
+            organized[t]= torch.FloatTensor(organized[t])
+            if args.cuda:
+                organized[t]= organized[t].cuda()
+            errors[t] = organized[t] - train_dataset[t][0][channel_idx]
             if args.cuda:
                 errors[t] = errors[t].cuda()
             errors[t] = errors[t].unsqueeze(0)
@@ -67,6 +70,8 @@ def anomalyScore(args, model, dataset, mean, cov, channel_idx=0, score_predictor
                 organized[t].append(
                     predictions[step + t - args.prediction_window_size][args.prediction_window_size - 1 - step])
             organized[t] =torch.FloatTensor(organized[t]).unsqueeze(0)
+            if args.cuda:
+                organized[t] = organized[t].cuda()
             errors[t] = organized[t] - dataset[t][0][channel_idx]
             if args.cuda:
                 errors[t] = errors[t].cuda()
@@ -74,6 +79,7 @@ def anomalyScore(args, model, dataset, mean, cov, channel_idx=0, score_predictor
             organized[t] = torch.zeros(1,args.prediction_window_size)
             errors[t] = torch.zeros(1,args.prediction_window_size)
             if args.cuda:
+                organized[t] = organized[t].cuda()
                 errors[t] = errors[t].cuda()
     predicted_scores = np.array(predicted_scores)
     scores = []

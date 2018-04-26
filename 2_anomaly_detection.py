@@ -72,17 +72,17 @@ try:
         sorted_errors = torch.cat(sorted_errors,dim=0)
         scores = np.array(scores)
         target= preprocess_data.reconstruct(test_dataset.cpu()[:, 0,channel_idx].numpy(),
-                                             TimeseriesData.mean[channel_idx],
-                                             TimeseriesData.std[channel_idx])
-        sorted_predictions_mean = preprocess_data.reconstruct(sorted_predictions.mean(dim=1).numpy(),
-                                             TimeseriesData.mean[channel_idx],
-                                             TimeseriesData.std[channel_idx])
-        sorted_predictions_1step = preprocess_data.reconstruct(sorted_predictions[:,-1].numpy(),
-                                             TimeseriesData.mean[channel_idx],
-                                             TimeseriesData.std[channel_idx])
-        sorted_predictions_Nstep = preprocess_data.reconstruct(sorted_predictions[:,0].numpy(),
-                                             TimeseriesData.mean[channel_idx],
-                                             TimeseriesData.std[channel_idx])
+                                             TimeseriesData.mean[channel_idx].numpy(),
+                                             TimeseriesData.std[channel_idx].numpy())
+        sorted_predictions_mean = preprocess_data.reconstruct(sorted_predictions.mean(dim=1).cpu().numpy(),
+                                             TimeseriesData.mean[channel_idx].numpy(),
+                                             TimeseriesData.std[channel_idx].numpy())
+        sorted_predictions_1step = preprocess_data.reconstruct(sorted_predictions[:,-1].cpu().numpy(),
+                                             TimeseriesData.mean[channel_idx].numpy(),
+                                             TimeseriesData.std[channel_idx].numpy())
+        sorted_predictions_Nstep = preprocess_data.reconstruct(sorted_predictions[:,0].cpu().numpy(),
+                                             TimeseriesData.mean[channel_idx].numpy(),
+                                             TimeseriesData.std[channel_idx].numpy())
         sorted_errors_mean = sorted_errors.abs().mean(dim=1).cpu().numpy()
         sorted_errors_mean *=TimeseriesData.std[channel_idx]
 
@@ -105,7 +105,7 @@ try:
                  color='red', marker='.', linestyle='--', markersize=1, linewidth=1)
         ax2.plot(predicted_scores,label='Predicted anomaly scores from SVR',
                  color='cyan', marker='.', linestyle='--', markersize=1, linewidth=1)
-        #ax2.plot(scores.reshape(-1,1)/predicted_scores,label='Anomaly scores from \nmultivariate normal distribution',
+        #ax2.plot(scores.reshape(-1,1)/(predicted_scores+1),label='Anomaly scores from \nmultivariate normal distribution',
         #        color='hotpink', marker='.', linestyle='--', markersize=1, linewidth=1)
         ax2.legend(loc='upper right')
         ax2.set_ylabel('anomaly score',fontsize=15)

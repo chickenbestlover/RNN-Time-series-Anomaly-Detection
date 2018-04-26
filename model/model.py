@@ -46,9 +46,17 @@ class RNNPredictor(nn.Module):
         self.decoder.bias.data.fill_(0)
         self.decoder.weight.data.uniform_(-initrange, initrange)
 
-    def forward(self, input, hidden, return_hiddens=False):
+    def forward(self, input, hidden, return_hiddens=False, noise=False):
         emb = self.drop(self.encoder(input.contiguous().view(-1,self.enc_input_size))) # [(seq_len x batch_size) * feature_size]
         emb = emb.view(-1, input.size(1), self.rnn_hid_size) # [ seq_len * batch_size * feature_size]
+        if noise:
+            # emb_noise = Variable(torch.randn(emb.size()))
+            # hidden_noise = Variable(torch.randn(hidden[0].size()))
+            # if next(self.parameters()).is_cuda:
+            #     emb_noise=emb_noise.cuda()
+            #     hidden_noise=hidden_noise.cuda()
+            # emb = emb+emb_noise
+            hidden = (F.dropout(hidden[0],training=True,p=0.9),F.dropout(hidden[1],training=True,p=0.9))
         output, hidden = self.rnn(emb, hidden)
         output = self.drop(output)
         decoded = self.decoder(output.view(output.size(0)*output.size(1), output.size(2))) # [(seq_len x batch_size) * feature_size]
@@ -60,6 +68,9 @@ class RNNPredictor(nn.Module):
 
         return decoded, hidden
 
+
+
+
     def init_hidden(self, bsz):
         weight = next(self.parameters()).data
         if self.rnn_type == 'LSTM':
@@ -70,10 +81,10 @@ class RNNPredictor(nn.Module):
 
     def repackage_hidden(self,h):
         """Wraps hidden states in new Variables, to detach them from their history."""
-        if type(h) == Variable:
-            return Variable(h.data)
-        else:
+        if type(h) == tuple:
             return tuple(self.repackage_hidden(v) for v in h)
+        else:
+            return Variable(h.data)
 
     def save_checkpoint(self, args, state, is_best):
         print("=> saving checkpoint ..")

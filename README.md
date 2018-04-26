@@ -54,7 +54,8 @@ The Time-series 2~6 are provided by E. Keogh et al. in
 
 ## Example of usage
 __0. Download the dataset:__
-Download the 4 kinds of multivariate time-series dataset (ecg, gesture,power_demand, respiration, space_shuttle),
+Download the five kinds of multivariate time-series dataset
+(ecg, gesture,power_demand, respiration, space_shuttle),
 and Label all the abnormality points in the dataset.
 ```
     python 0_download_dataset.py
@@ -65,12 +66,14 @@ __1. Time-series prediction:__
 Train and save RNN based time-series prediction model
 ```
     python 1_train_predictor.py --data ecg --filename chfdb_chf14_45590.pkl
+    python 1_train_predictor.py --data nyc_taxi --filename nyc_taxi.pkl
 ```
 __2. Anomaly detection:__
 Fit multivariate gaussian distribution on train dataset and
 calculate anomaly scores on test dataset
 ```
-    python 2_anomaly_detection.py --data ecg --filename chfdb_chf14_45590.pkl
+    python 2_anomaly_detection.py --data ecg --filename chfdb_chf14_45590.pkl --prediction_window 10
+    python 2_anomaly_detection.py --data nyc_taxi --filename nyc_taxi.pkl --prediction_window 10
 ```
 ## Result
 __1. Time-series prediction:__
@@ -105,7 +108,7 @@ Anomaly scores from the Multivariate Gaussian Distribution model
 
 
 ## To do
-* Add more time-series data
+
 * Add quantitative evaluation method such as precision, recall and F1 score.
 
 

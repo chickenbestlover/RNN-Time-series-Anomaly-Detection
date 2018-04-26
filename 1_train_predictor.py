@@ -34,7 +34,7 @@ parser.add_argument('--lr', type=float, default=0.0002,
                     help='initial learning rate')
 parser.add_argument('--weight_decay', type=float, default=1e-4,
                     help='weight decay')
-parser.add_argument('--clip', type=float, default=0.25,
+parser.add_argument('--clip', type=float, default=10,
                     help='gradient clipping')
 parser.add_argument('--epochs', type=int, default=50,
                     help='upper epoch limit')
@@ -108,20 +108,48 @@ def get_batch(source, i, evaluation=False):
     target = Variable(source[i+1:i+1+seq_len]) # [ (seq_len x batch_size x feature_size) ]
     return data, target
 
-def generate_output(args,epoch, model, gen_dataset, startPoint=500, endPoint=3500):
+def generate_output(args,epoch, model, gen_dataset, disp_uncertainty=True,startPoint=500, endPoint=3500):
     # Turn on evaluation mode which disables dropout.
     model.eval()
     hidden = model.init_hidden(1)
     outSeq = []
+    upperlim95 = []
+    lowerlim95 = []
     for i in range(endPoint):
-        if i>startPoint:
+        if i>=startPoint:
+            # if disp_uncertainty and epoch > 40:
+            #     outs = []
+            #     model.train()
+            #     for i in range(20):
+            #         out_, hidden_ = model.forward(out+0.01*Variable(torch.randn(out.size())).cuda(),hidden,noise=True)
+            #         outs.append(out_)
+            #     model.eval()
+            #     outs = torch.cat(outs,dim=0)
+            #     out_mean = torch.mean(outs,dim=0) # [bsz * feature_dim]
+            #     out_std = torch.std(outs,dim=0) # [bsz * feature_dim]
+            #     upperlim95.append(out_mean + 2.58*out_std/np.sqrt(20))
+            #     lowerlim95.append(out_mean - 2.58*out_std/np.sqrt(20))
+
             out, hidden = model.forward(out, hidden)
+
+            #print(out_mean,out)
+
         else:
             out, hidden = model.forward(Variable(gen_dataset[i].unsqueeze(0), volatile=True), hidden)
         outSeq.append(out.data.cpu()[0][0].unsqueeze(0))
+
+
     outSeq = torch.cat(outSeq,dim=0) # [seqLength * feature_dim]
+
     target= preprocess_data.reconstruct(gen_dataset.cpu().numpy(), TimeseriesData.mean, TimeseriesData.std)
     outSeq = preprocess_data.reconstruct(outSeq.numpy(), TimeseriesData.mean, TimeseriesData.std)
+    # if epoch>40:
+    #     upperlim95 = torch.cat(upperlim95, dim=0)
+    #     lowerlim95 = torch.cat(lowerlim95, dim=0)
+    #     upperlim95 = preprocess_data.reconstruct(upperlim95.data.cpu().numpy(),TimeseriesData.mean,TimeseriesData.std)
+    #     lowerlim95 = preprocess_data.reconstruct(lowerlim95.data.cpu().numpy(),TimeseriesData.mean,TimeseriesData.std)
+
+
 
     plt.figure(figsize=(15,5))
     for i in range(target.size(-1)):
@@ -129,6 +157,11 @@ def generate_output(args,epoch, model, gen_dataset, startPoint=500, endPoint=350
                  color='black', marker='.', linestyle='--', markersize=1, linewidth=0.5)
         plt.plot(range(startPoint), outSeq[:startPoint,i].numpy(), label='1-step predictions for target'+str(i),
                  color='green', marker='.', linestyle='--', markersize=1.5, linewidth=1)
+        # if epoch>40:
+        #     plt.plot(range(startPoint, endPoint), upperlim95[:,i].numpy(), label='upperlim'+str(i),
+        #              color='skyblue', marker='.', linestyle='--', markersize=1.5, linewidth=1)
+        #     plt.plot(range(startPoint, endPoint), lowerlim95[:,i].numpy(), label='lowerlim'+str(i),
+        #              color='skyblue', marker='.', linestyle='--', markersize=1.5, linewidth=1)
         plt.plot(range(startPoint, endPoint), outSeq[startPoint:,i].numpy(), label='Recursive predictions for target'+str(i),
                  color='blue', marker='.', linestyle='--', markersize=1.5, linewidth=1)
 

@@ -78,7 +78,7 @@ for dataname in urls:
                     tokens.append(1.0) if 8254 < i < 8998 or 11348 < i < 12143 or 33883 < i < 34601 else tokens.append(0.0)
                 labeled_data.append(tokens)
 
-            # Filled in the point where there is no signal value.
+            # Fill in the point where there is no signal value.
             if filepath.name == 'ann_gun_CentroidA.txt':
                 for i, datapoint in enumerate(labeled_data):
                     for j,channel in enumerate(datapoint[:-1]):
