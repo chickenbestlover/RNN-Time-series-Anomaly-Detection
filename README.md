@@ -63,18 +63,33 @@ and Label all the abnormality points in the dataset.
 
 
 __1. Time-series prediction:__
-Train and save RNN based time-series prediction model
+Train and save RNN based time-series prediction model on a single time-series trainset
 ```
     python 1_train_predictor.py --data ecg --filename chfdb_chf14_45590.pkl
     python 1_train_predictor.py --data nyc_taxi --filename nyc_taxi.pkl
 ```
+Train multiple models using bash script
+
+```
+    ./1_train_predictor_all.sh
+```
+
 __2. Anomaly detection:__
-Fit multivariate gaussian distribution on train dataset and
-calculate anomaly scores on test dataset
+Fit multivariate gaussian distribution and
+calculate anomaly scores on a single time-series testset
 ```
     python 2_anomaly_detection.py --data ecg --filename chfdb_chf14_45590.pkl --prediction_window 10
     python 2_anomaly_detection.py --data nyc_taxi --filename nyc_taxi.pkl --prediction_window 10
 ```
+Test multiple models using bash script
+```
+    ./2_anomaly_detection_all.sh
+```
+
+
+
+
+
 ## Result
 __1. Time-series prediction:__
 Predictions from the stacked RNN model
@@ -94,21 +109,19 @@ Anomaly scores from the Multivariate Gaussian Distribution model
 
 ![scores1](./fig/scores_nyc_taxi.png)
 
-![scores2](./fig/scores_nyc_taxi_magnified.png)
 
-* Electrocardiograms (ECGs)
+* Electrocardiograms (ECGs) (filename: chfdb_chf14_45590)
+
+
 
 ![scores3](./fig/scores_ecg1.png)
 
+
 ![scores4](./fig/scores_ecg2.png)
 
-![scores5](./fig/scores_ecg1_magnified.png)
 
-![scores6](./fig/scores_ecg2_magnified.png)
+![f1_ecg1](./fig/fig_f_beta_channel0.png)
 
 
-## To do
-
-* Add quantitative evaluation method such as precision, recall and F1 score.
-
+![f1_ecg1](./fig/fig_f_beta_channel1.png)
 
