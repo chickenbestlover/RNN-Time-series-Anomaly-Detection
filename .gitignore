@@ -1,9 +1,6 @@
-result/ecg/*.png
-result/ecg/*.gif
-result/nyc_taxi/*.png
-result/nyc_taxi/*.gif
-result/gesture/*.png
-result/gesture/*.gif
+result/*
+dataset/*
+save/*
 
 *.pyc
 png2gif.py
@@ -12,7 +9,5 @@ png2gif.py
 *.pt
 raw_dataset/*
 *.zip
-*.txt
 *.pkl
-
-
+anomaly_dataset/*

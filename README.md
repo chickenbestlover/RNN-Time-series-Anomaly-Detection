@@ -6,7 +6,7 @@ This is an implementation of RNN based time-series anomaly detector, which consi
 
 ## Requirements
 * Python 3.5+
-* Pytorch 0.3.1+
+* Pytorch 0.4.0+
 * Numpy
 * Matplotlib
 * Scikit-learn
