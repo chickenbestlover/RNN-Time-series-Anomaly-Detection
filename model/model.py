@@ -2,7 +2,6 @@ import torch.nn as nn
 import torch
 from torch.autograd import Variable
 import torch.nn.functional as F
-from cuda_functional import SRU, SRUCell
 import shutil
 from pathlib import Path
 
@@ -19,6 +18,7 @@ class RNNPredictor(nn.Module):
         if rnn_type in ['LSTM', 'GRU']:
             self.rnn = getattr(nn, rnn_type)(rnn_inp_size, rnn_hid_size, nlayers, dropout=dropout)
         elif rnn_type == 'SRU':
+            from cuda_functional import SRU, SRUCell
             self.rnn = SRU(input_size=rnn_inp_size,hidden_size=rnn_hid_size,num_layers=nlayers,dropout=dropout,
                            use_tanh=False,use_selu=True,layer_norm=True)
         else:
