@@ -126,3 +126,6 @@ Anomaly scores from the Multivariate Gaussian Distribution model
 
 ![f1ecg2](./fig/fig_f_beta_channel1.png)
 
+## Contact
+If you have any questions, please open an issue.
+
