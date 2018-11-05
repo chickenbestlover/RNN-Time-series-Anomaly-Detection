@@ -122,14 +122,16 @@ Anomaly scores from the Multivariate Gaussian Distribution model
 
 ## Evaluation
 
-__1. Precision, recall, and F1 score
+Model performance was evaluated by comparing the model output with the pre-labeled ground-truth. Note that ground-truth is only used for model evaluation. The anomaly score threshold was increased from 0 to some maximum value to plot the change of precision, recall, and f1 score. Here we show only the results for the ECG dataset. Execute the code yourself and see more results.
+
+__1. Precision, recall, and F1 score:__
 
 * Electrocardiograms (ECGs) (filename: chfdb_chf14_45590)
   - channel 0
 
 ![f1ecg1](./fig/fig_f_beta_channel0.png)
 
-  - channel 1
+      - channel 1
 
 ![f1ecg2](./fig/fig_f_beta_channel1.png)
 
