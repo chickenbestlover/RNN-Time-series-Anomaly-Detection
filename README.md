@@ -128,11 +128,11 @@ __1. Precision, recall, and F1 score:__
 
 * Electrocardiograms (ECGs) (filename: chfdb_chf14_45590)
 
-    a. channel 0
+a. channel 0
 
 ![f1ecg1](./fig/fig_f_beta_channel0.png)
 
-    b. channel 1
+b. channel 1
 
 ![f1ecg2](./fig/fig_f_beta_channel1.png)
 
