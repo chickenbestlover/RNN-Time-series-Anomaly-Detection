@@ -120,9 +120,16 @@ Anomaly scores from the Multivariate Gaussian Distribution model
 
 ![scores4](./fig/scores_ecg2.png)
 
+## Evaluation
+
+__1. Precision, recall, and F1 score
+
+* Electrocardiograms (ECGs) (filename: chfdb_chf14_45590)
+  - channel 0
 
 ![f1ecg1](./fig/fig_f_beta_channel0.png)
 
+  - channel 1
 
 ![f1ecg2](./fig/fig_f_beta_channel1.png)
 
