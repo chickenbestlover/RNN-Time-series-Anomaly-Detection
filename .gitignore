@@ -3,7 +3,6 @@ dataset/*
 save/*
 
 *.pyc
-png2gif.py
 ./idea
 *.pth.tar
 *.pt
