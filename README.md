@@ -136,6 +136,21 @@ b. channel 1
 
 ![f1ecg2](./fig/fig_f_beta_channel1.png)
 
+
+## Citations
+
+Please consider citing this project in your publications if it helps your research. The following is a BibTeX reference. The BibTeX entry requires the url LaTeX package.
+
+```
+@misc{park2018anomaly,
+author = {Jinman, Park},
+title = {{RNN based Time-series Anomaly Detector Model Implemented in Pytorch}},
+year = {2018},
+howpublished = {\url{https://github.com/chickenbestlover/RNN-Time-series-Anomaly-Detection}},
+note = {Accessed: [Insert date here]}
+}
+```
+
 ## Contact
 If you have any questions, please open an issue.
 
