@@ -143,7 +143,7 @@ Please consider citing this project in your publications if it helps your resear
 
 ```
 @misc{park2018anomaly,
-author = {Jinman, Park},
+author = {Park, Jinman},
 title = {{RNN based Time-series Anomaly Detector Model Implemented in Pytorch}},
 year = {2018},
 howpublished = {\url{https://github.com/chickenbestlover/RNN-Time-series-Anomaly-Detection}},
