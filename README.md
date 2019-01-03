@@ -42,19 +42,31 @@ The Time-series 2~6 are provided by E. Keogh et al. in
 
 ## RNN-based Multi-Step Prediction Model
 __0. Architecture__
-test
+
 ![arch](./fig/arch.png)
 
+When the value of x_i is known from i=0 to i=t, the model recursively predicts the value of x_i from i=t+1 to i=T. In this figure, t=3, T=8. We first train this model with a trainset which contains no anomalies, then we use the trained model to detect anomalies in a testset, where anomalies are included. 
+
 __1. How to train this model__
-test
+
+Recursive multi-step prediction using RNNs is a rather difficult problem. As the prediction progresses, the prediction errors are accumulated and the predictions rapidly become inaccurate. To solve this problem, we need a model that is robust to input noise.
+
 ![1steploss](./fig/1steploss.png)
-test
+
+TODO
+
 ![msteploss](./fig/msteploss.png)
-test
+
+TODO
+
 ![pfloss](./fig/pfloss.png)
 
+TODO
 
 
+## RNN-based Multi-Step Prediction Model
+
+TODO
 
 
 ## Example of usage
