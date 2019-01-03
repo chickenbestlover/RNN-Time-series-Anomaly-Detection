@@ -43,15 +43,15 @@ The Time-series 2~6 are provided by E. Keogh et al. in
 ## RNN-based Multi-Step Prediction Model
 __0. Architecture__
 test
-![arch](./fig/arch.gif)
+![arch](./fig/arch.png)
 
 __1. How to train this model__
 test
-![1steploss](./fig/1steploss.pdf)
+![1steploss](./fig/1steploss.png)
 test
-![msteploss](./fig/msteploss.pdf)
+![msteploss](./fig/msteploss.png)
 test
-![pfloss](./fig/pfloss.pdf)
+![pfloss](./fig/pfloss.png)
 
 
 
