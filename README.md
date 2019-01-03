@@ -40,16 +40,20 @@ The Time-series 2~6 are provided by E. Keogh et al. in
   , [dataset](http://www.cs.ucr.edu/~eamonn/discords/)
 
 
-## Implemented Algorithms
-* RNN based Multi-step predictor
-  - [Malhotra, Pankaj, et al. "Long short term memory networks for anomaly detection in time series." Proceedings. Presses universitaires de Louvain, 2015.](https://www.elen.ucl.ac.be/Proceedings/esann/esannpdf/es2015-56.pdf)
+## RNN-based Multi-Step Prediction Model
+__0. Architecture__
+test
+![arch](./fig/arch.gif)
+
+__1. How to train this model__
+test
+![1steploss](./fig/1steploss.pdf)
+test
+![msteploss](./fig/msteploss.pdf)
+test
+![pfloss](./fig/pfloss.pdf)
 
 
-* Multivariate Gaussian distribution based anomaly detector
-  - [Malhotra, Pankaj, et al. "LSTM-based encoder-decoder for multi-sensor anomaly detection." arXiv preprint arXiv:1607.00148 (2016).](https://arxiv.org/pdf/1607.00148.pdf)
-
-* Anomaly score predictor
-  - [Park, Daehyung, Yuuna Hoshi, and Charles C. Kemp. "A Multimodal Anomaly Detector for Robot-Assisted Feeding Using an LSTM-based Variational Autoencoder." IEEE Robotics and Automation Letters 3.3 (2018): 1544-1551.](https://arxiv.org/pdf/1711.00614.pdf)
 
 
 
@@ -150,6 +154,17 @@ howpublished = {\url{https://github.com/chickenbestlover/RNN-Time-series-Anomaly
 note = {Accessed: [Insert date here]}
 }
 ```
+
+
+## References
+* [Malhotra, Pankaj, et al. "Long short term memory networks for anomaly detection in time series." Proceedings. Presses universitaires de Louvain, 2015.](https://www.elen.ucl.ac.be/Proceedings/esann/esannpdf/es2015-56.pdf)
+
+
+* [Malhotra, Pankaj, et al. "LSTM-based encoder-decoder for multi-sensor anomaly detection." arXiv preprint arXiv:1607.00148 (2016).](https://arxiv.org/pdf/1607.00148.pdf)
+
+* [Park, Daehyung, Yuuna Hoshi, and Charles C. Kemp. "A Multimodal Anomaly Detector for Robot-Assisted Feeding Using an LSTM-based Variational Autoencoder." IEEE Robotics and Automation Letters 3.3 (2018): 1544-1551.](https://arxiv.org/pdf/1711.00614.pdf)
+
+
 
 ## Contact
 If you have any questions, please open an issue.
