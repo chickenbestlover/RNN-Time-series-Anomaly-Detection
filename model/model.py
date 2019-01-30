@@ -96,13 +96,13 @@ class RNNPredictor(nn.Module):
     def save_checkpoint(self,state, is_best):
         print("=> saving checkpoint ..")
         args = state['args']
-        checkpoint_dir = Path('save',args.data,'checkpoint')
+        checkpoint_dir = Path(args.path_save+'/save',args.data,'checkpoint')
         checkpoint_dir.mkdir(parents=True,exist_ok=True)
         checkpoint = checkpoint_dir.joinpath(args.filename).with_suffix('.pth')
 
         torch.save(state, checkpoint)
         if is_best:
-            model_best_dir = Path('save',args.data,'model_best')
+            model_best_dir = Path(args.path_save+'/save',args.data,'model_best')
             model_best_dir.mkdir(parents=True,exist_ok=True)
 
             shutil.copyfile(checkpoint, model_best_dir.joinpath(args.filename).with_suffix('.pth'))
