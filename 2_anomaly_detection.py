@@ -23,6 +23,8 @@ parser.add_argument('--save_fig', action='store_true',
                     help='save results as figures')
 parser.add_argument('--path_save', type=str, default='./result/nyc_taxi',
                     help='file path to save data')
+parser.add_argument('--path_load', type=str, default='./result/nyc_taxi',
+                    help='file path to load dataset from')
 parser.add_argument('--compensate', action='store_true',
                     help='compensate anomaly score using anomaly score esimation')
 parser.add_argument('--beta', type=float, default=1.0,
@@ -48,7 +50,7 @@ torch.cuda.manual_seed(args.seed)
 ###############################################################################
 # Load data
 ###############################################################################
-TimeseriesData = preprocess_data.PickleDataLoad(pathSave=args_.path_save, data_type=args.data,filename=args.filename, augment_test_data=False)
+TimeseriesData = preprocess_data.PickleDataLoad(pathVar=args_.path_load, data_type=args.data,filename=args.filename, augment_test_data=False)
 train_dataset = TimeseriesData.batchify(args,TimeseriesData.trainData[:TimeseriesData.length], bsz=1)
 test_dataset = TimeseriesData.batchify(args,TimeseriesData.testData, bsz=1)
 
