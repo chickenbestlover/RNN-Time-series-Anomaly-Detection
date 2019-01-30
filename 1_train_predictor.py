@@ -58,6 +58,8 @@ parser.add_argument('--save_fig', action='store_true',
                     help='save figure')
 parser.add_argument('--path_save', type=str, default='./result/nyc_taxi',
                     help='file path to save data')
+parser.add_argument('--path_load', type=str, default='./result/nyc_taxi',
+                    help='file path to load dataset from')
 parser.add_argument('--resume','-r',
                     help='use checkpoint model parameters as initial parameters (default: False)',
                     action="store_true")
@@ -74,7 +76,7 @@ torch.cuda.manual_seed(args.seed)
 ###############################################################################
 # Load data
 ###############################################################################
-TimeseriesData = preprocess_data.PickleDataLoad(pathSave=args.path_save, data_type=args.data, filename=args.filename,
+TimeseriesData = preprocess_data.PickleDataLoad(pathVar=args.path_load, data_type=args.data, filename=args.filename,
                                                 augment_test_data=args.augment)
 train_dataset = TimeseriesData.batchify(args,TimeseriesData.trainData, args.batch_size)
 test_dataset = TimeseriesData.batchify(args,TimeseriesData.testData, args.eval_batch_size)
