@@ -21,6 +21,8 @@ parser.add_argument('--filename', type=str, default='chfdb_chf13_45590.pkl',
                     help='filename of the dataset')
 parser.add_argument('--save_fig', action='store_true',
                     help='save results as figures')
+parser.add_argument('--path_save', type=str, default='./result/nyc_taxi',
+                    help='file path to save data')
 parser.add_argument('--compensate', action='store_true',
                     help='compensate anomaly score using anomaly score esimation')
 parser.add_argument('--beta', type=float, default=1.0,
@@ -30,7 +32,7 @@ parser.add_argument('--beta', type=float, default=1.0,
 args_ = parser.parse_args()
 print('-' * 89)
 print("=> loading checkpoint ")
-checkpoint = torch.load(str(Path('save',args_.data,'checkpoint',args_.filename).with_suffix('.pth')))
+checkpoint = torch.load(str(Path(args_.path_save+'/save',args_.data,'checkpoint',args_.filename).with_suffix('.pth')))
 args = checkpoint['args']
 args.prediction_window_size= args_.prediction_window_size
 args.beta = args_.beta
@@ -46,7 +48,7 @@ torch.cuda.manual_seed(args.seed)
 ###############################################################################
 # Load data
 ###############################################################################
-TimeseriesData = preprocess_data.PickleDataLoad(data_type=args.data,filename=args.filename, augment_test_data=False)
+TimeseriesData = preprocess_data.PickleDataLoad(pathSave=args_.path_save, data_type=args.data,filename=args.filename, augment_test_data=False)
 train_dataset = TimeseriesData.batchify(args,TimeseriesData.trainData[:TimeseriesData.length], bsz=1)
 test_dataset = TimeseriesData.batchify(args,TimeseriesData.testData, bsz=1)
 
@@ -139,7 +141,7 @@ try:
 
 
         if args.save_fig:
-            save_dir = Path('result',args.data,args.filename).with_suffix('').joinpath('fig_detection')
+            save_dir = Path(args_.path_save+'/result',args.data,args.filename).with_suffix('').joinpath('fig_detection')
             save_dir.mkdir(parents=True,exist_ok=True)
             plt.plot(precision.cpu().numpy(),label='precision')
             plt.plot(recall.cpu().numpy(),label='recall')
@@ -191,7 +193,7 @@ except KeyboardInterrupt:
 
 
 print('=> saving the results as pickle extensions')
-save_dir = Path('result', args.data, args.filename).with_suffix('')
+save_dir = Path(args_.path_save+'/result', args.data, args.filename).with_suffix('')
 save_dir.mkdir(parents=True, exist_ok=True)
 pickle.dump(targets, open(str(save_dir.joinpath('target.pkl')),'wb'))
 pickle.dump(mean_predictions, open(str(save_dir.joinpath('mean_predictions.pkl')),'wb'))

@@ -18,10 +18,10 @@ def reconstruct(seqData,mean,std):
     return seqData*std+mean
 
 class PickleDataLoad(object):
-    def __init__(self, data_type, filename, augment_test_data=True):
+    def __init__(self, pathSave, data_type, filename, augment_test_data=True):
         self.augment_test_data=augment_test_data
-        self.trainData, self.trainLabel = self.preprocessing(Path('dataset',data_type,'labeled','train',filename),train=True)
-        self.testData, self.testLabel = self.preprocessing(Path('dataset',data_type,'labeled','test',filename),train=False)
+        self.trainData, self.trainLabel = self.preprocessing(Path(pathSave+'/dataset',data_type,'labeled','train',filename),train=True)
+        self.testData, self.testLabel = self.preprocessing(Path(pathSave+'/dataset',data_type,'labeled','test',filename),train=False)
 
     def augmentation(self,data,label,noise_ratio=0.05,noise_interval=0.0005,max_length=100000):
         noiseSeq = torch.randn(data.size())
