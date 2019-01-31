@@ -138,8 +138,8 @@ def generate_output(args,epoch, model, gen_dataset, disp_uncertainty=True,startP
 
         outSeq = torch.cat(outSeq,dim=0) # [seqLength * feature_dim]
 
-        target= preprocess_data.reconstruct(gen_dataset.cpu().numpy(), TimeseriesData.mean, TimeseriesData.std)
-        outSeq = preprocess_data.reconstruct(outSeq.numpy(), TimeseriesData.mean, TimeseriesData.std)
+        target= preprocess_data.reconstruct(gen_dataset.cpu(), TimeseriesData.mean, TimeseriesData.std)
+        outSeq = preprocess_data.reconstruct(outSeq, TimeseriesData.mean, TimeseriesData.std)
         # if epoch>40:
         #     upperlim95 = torch.cat(upperlim95, dim=0)
         #     lowerlim95 = torch.cat(lowerlim95, dim=0)
