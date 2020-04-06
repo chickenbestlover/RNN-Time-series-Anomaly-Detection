@@ -305,7 +305,7 @@ if args.resume or args.pretrained:
 else:
     epoch = 1
     start_epoch = 1
-    best_val_loss = 0
+    best_val_loss = float('inf')
     print("=> Start training from scratch")
 print('-' * 89)
 print(args)
@@ -327,8 +327,8 @@ if not args.pretrained:
 
             if epoch%args.save_interval==0:
                 # Save the model if the validation loss is the best we've seen so far.
-                is_best = val_loss > best_val_loss
-                best_val_loss = max(val_loss, best_val_loss)
+                is_best = val_loss < best_val_loss
+                best_val_loss = min(val_loss, best_val_loss)
                 model_dictionary = {'epoch': epoch,
                                     'best_loss': best_val_loss,
                                     'state_dict': model.state_dict(),
