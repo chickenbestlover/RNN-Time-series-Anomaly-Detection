@@ -132,7 +132,7 @@ try:
         sorted_errors_mean *= TimeseriesData.std[channel_idx]
         sorted_errors_mean = sorted_errors_mean.numpy()
         score = score.cpu()
-        scores.append(score), targets.append(targets), predicted_scores.append(predicted_score)
+        scores.append(score), targets.append(target), predicted_scores.append(predicted_score)
         mean_predictions.append(mean_prediction), oneStep_predictions.append(oneStep_prediction)
         Nstep_predictions.append(Nstep_prediction)
         precisions.append(precision), recalls.append(recall), f_betas.append(f_beta)
