@@ -56,6 +56,10 @@ parser.add_argument('--save_interval', type=int, default=10, metavar='N',
                     help='save interval')
 parser.add_argument('--save_fig', action='store_true',
                     help='save figure')
+parser.add_argument('--path_save', type=str, default='./result/nyc_taxi',
+                    help='file path to save data')
+parser.add_argument('--path_load', type=str, default='./result/nyc_taxi',
+                    help='file path to load dataset from')
 parser.add_argument('--resume','-r',
                     help='use checkpoint model parameters as initial parameters (default: False)',
                     action="store_true")
@@ -72,7 +76,7 @@ torch.cuda.manual_seed(args.seed)
 ###############################################################################
 # Load data
 ###############################################################################
-TimeseriesData = preprocess_data.PickleDataLoad(data_type=args.data, filename=args.filename,
+TimeseriesData = preprocess_data.PickleDataLoad(pathVar=args.path_load, data_type=args.data, filename=args.filename,
                                                 augment_test_data=args.augment)
 train_dataset = TimeseriesData.batchify(args,TimeseriesData.trainData, args.batch_size)
 test_dataset = TimeseriesData.batchify(args,TimeseriesData.testData, args.eval_batch_size)
@@ -167,7 +171,7 @@ def generate_output(args,epoch, model, gen_dataset, disp_uncertainty=True,startP
         plt.legend()
         plt.tight_layout()
         plt.text(startPoint-500+10, target.min(), 'Epoch: '+str(epoch),fontsize=15)
-        save_dir = Path('result',args.data,args.filename).with_suffix('').joinpath('fig_prediction')
+        save_dir = Path(args.path_save+'/result',args.data,args.filename).with_suffix('').joinpath('fig_prediction')
         save_dir.mkdir(parents=True,exist_ok=True)
         plt.savefig(save_dir.joinpath('fig_epoch'+str(epoch)).with_suffix('.png'))
         #plt.show()
@@ -296,7 +300,7 @@ def evaluate(args, model, test_dataset):
 # Loop over epochs.
 if args.resume or args.pretrained:
     print("=> loading checkpoint ")
-    checkpoint = torch.load(Path('save', args.data, 'checkpoint', args.filename).with_suffix('.pth'))
+    checkpoint = torch.load(Path(args.path_save+'/save', args.data, 'checkpoint', args.filename).with_suffix('.pth'))
     args, start_epoch, best_val_loss = model.load_checkpoint(args,checkpoint,feature_dim)
     optimizer.load_state_dict((checkpoint['optimizer']))
     del checkpoint
