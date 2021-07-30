@@ -39,6 +39,11 @@ The Time-series 2~6 are provided by E. Keogh et al. in
 ](http://ieeexplore.ieee.org/abstract/document/1565683/)
   , [dataset](http://www.cs.ucr.edu/~eamonn/discords/)
 
+### **_DISCLAIMER_**: 
+_<U>The labels provided on this GitHub are unofficial and have not been verified. Labels were unofficially created by non-experts (annotated without any domain knowledge of the dataset) and contains mislabeled points. 
+We referred to other time-series anomaly detection papers using the datasets   ([Malhotra et al., 2015.](https://www.elen.ucl.ac.be/Proceedings/esann/esannpdf/es2015-56.pdf),
+[Malhotra et al., 2016.](https://arxiv.org/pdf/1607.00148.pdf)) 
+and the author's dataset presentation slides to label anomaly points in this time series as accurately as possible. Nevertheless, since we are neither the authors of the dataset nor the domain experts, the labels are inaccurate. If you need accurate label information, you should refer to the official [dataset](http://www.cs.ucr.edu/~eamonn/discords/) [description](http://www.cs.ucr.edu/~eamonn/discords/ICDM05_discords.pdf) or contact the authors.</U>_
 
 ## RNN-based Multi-Step Prediction Model
 __0. Architecture__
@@ -169,6 +174,9 @@ note = {Accessed: [Insert date here]}
 
 
 ## References
+* [Keogh, Eamonn et al. "HOT SAX: Efficiently Finding the Most Unusual Time Series Subsequence." In The Fifth IEEE International Conference on Data Mining. (2005)
+](http://ieeexplore.ieee.org/abstract/document/1565683/)
+
 * [Malhotra, Pankaj, et al. "Long short term memory networks for anomaly detection in time series." Proceedings. Presses universitaires de Louvain, 2015.](https://www.elen.ucl.ac.be/Proceedings/esann/esannpdf/es2015-56.pdf)
 
 
